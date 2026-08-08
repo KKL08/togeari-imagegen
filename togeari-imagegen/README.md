@@ -50,13 +50,13 @@
 
 ### 🎵 成员分工
 
-| 成员 | 位置 | Skill | 职责 | 性格 |
-|:---:|------|-------|------|------|
-| <img src="docs/members/nina.png" width="50"><br>**Nina** 井芹仁菜 | 🎤 主唱 | togeari-producer | 理解意图，追问收敛，引导流程 | 敏感较真，追问到你真正想要的画面浮出来 |
-| <img src="docs/members/momoka.png" width="50"><br>**Momoka** 河原木桃香 | 🎸 吉他 | momoka-route | 给出多个创意方向 | 爽快果断，像前辈一样帮你看清方向 |
-| <img src="docs/members/tomo.png" width="50"><br>**Tomo** 海老塚智 | 🎹 键盘 | tomo-map / tomo-scan | 从领域地图中挖掘、检索契合的案例 | 冷眼精准，洞悉每个领域方向的契合度 |
-| <img src="docs/members/rupa.png" width="50"><br>**Rupa** ルパ | 🎸 贝斯 | rupa-craft | 把用户创作灵感和案例技巧融合成最终创作方案与提示方式 | 冷静清醒、艺术感强，掌控作品成型的节奏 |
-| <img src="docs/members/subaru.png" width="50"><br>**Subaru** 安和すばる | 🥁 鼓 | subaru-judge | 逐项审查生成结果，给优化建议和新灵感 | 表面轻松爱吐槽，骨子里好胜，细节一项不放过 |
+| 成员 | 位置 | 角色 | 职责 | 性格 |
+|:---:|------|------|------|------|
+| <img src="docs/members/nina.png" width="50"><br>**Nina** 井芹仁菜 | 🎤 主唱 | Producer | 理解意图，追问收敛，引导流程 | 敏感较真，追问到你真正想要的画面浮出来 |
+| <img src="docs/members/momoka.png" width="50"><br>**Momoka** 河原木桃香 | 🎸 吉他 | Route | 给出多个创意方向 | 爽快果断，像前辈一样帮你看清方向 |
+| <img src="docs/members/tomo.png" width="50"><br>**Tomo** 海老塚智 | 🎹 键盘 | Map / Scan | 从领域地图中挖掘、检索契合的案例 | 冷眼精准，洞悉每个领域方向的契合度 |
+| <img src="docs/members/rupa.png" width="50"><br>**Rupa** ルパ | 🎸 贝斯 | Craft | 把用户创作灵感和案例技巧融合成最终创作方案与提示方式 | 冷静清醒、艺术感强，掌控作品成型的节奏 |
+| <img src="docs/members/subaru.png" width="50"><br>**Subaru** 安和すばる | 🥁 鼓 | Judge | 逐项审查生成结果，给优化建议和新灵感 | 表面轻松爱吐槽，骨子里好胜，细节一项不放过 |
 
 ### 流程
 
@@ -70,13 +70,11 @@
 
 ### 智能调度
 
-每位成员既可以在主对话流程中协作完成任务，也可以派出作为 subagent 独立执行专项任务。Nina 会根据任务复杂度智能判断：
+大部分环节在主对话中直接完成，保留完整的创意上下文。Nina 会在需要上下文隔离时自动派发 subagent：
 
-- 灵感方向收敛需要参考 Gallery 领域知识 → Momoka 将作为 subagent，进行更专注的理解并提供更丰富契合的选项
-- 跨多个领域检索领域 Gallery → Tomo 将作为 subagent，在后台完成检索，不占主对话上下文信息
-- 复杂 brief 与 prompt 组装 → Rupa 将作为 subagent，专注 prompt 撰写润色，确保质量
-- 详细的逐项审查 → Subaru 将作为 subagent，独立审图，不受干扰，不遗漏细节
-- 批量生成多张图 → 激活多个 subagent 并行出图
+- 跨多个领域检索 Gallery → Tomo 作为 subagent 在后台完成检索，不占主对话上下文
+- 详细的逐项审查或批量审查 → Subaru 作为 subagent 独立审图，不受对话偏见干扰
+- 批量生成多张图 → 并行派发多个生成 worker
 
 ## 领域指南 & Prompt Gallery
 

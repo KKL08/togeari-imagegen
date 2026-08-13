@@ -14,12 +14,6 @@ description: >
   domain creativity maps as built-in knowledge, producing more
   professional results than raw prompting.
 tools: Bash, Read, Agent
-skills:
-  - momoka-route
-  - tomo-map
-  - tomo-scan
-  - rupa-craft
-  - subaru-judge
 ---
 
 # Image2 Creative Agent — togeari-producer
@@ -132,20 +126,7 @@ If the user doesn't mention anything about dimensions, quality, or format — do
 
 ### Step 2: Direction Convergence [Momoka]
 
-If the input is too broad, use momoka-route to generate direction options:
-
-```
-Skill("momoka-route")
-```
-
-Pass momoka-route the user's intent summary. If tomo-map results are already available (from Step 4 running early or a previous round), pass those too.
-
-For complex cases where momoka-route needs gallery domain knowledge, escalate to subagent:
-
-```
-Agent(subagent_type: "togeari-producer:momoka-route")
-Prompt: "User intent: [summary]. Gallery directions: [tomo-map results, if any]"
-```
+If the input is too broad, read `references/momoka-route.md` and follow it to generate direction options. Give Momoka the full intent picture from Step 1 — theme, style hints, purpose, text needs, batch intent, entity notes — plus tomo-map results if already available (from Step 4 running early or a previous round). Direction generation always runs inline: it needs the live conversation context, and gallery knowledge reaches it through tomo-map results, not through its own retrieval.
 
 Present the returned options to the user and wait for their choice.
 
@@ -235,18 +216,18 @@ This script reads the current session's JSONL transcript (supports both Claude C
 
 ### Step 4: Gallery — Direction Discovery [Tomo]
 
-Use tomo-map to find relevant creative directions from the gallery domain maps:
+Find relevant creative directions from the gallery domain maps.
 
-```
-Skill("tomo-map")
-```
+**Default (inline):** when one domain map covers the intent, read `references/tomo-map.md` and follow it directly.
 
-If the search scope spans multiple categories, escalate to subagent:
+**Escalate to a subagent** when the intent spans multiple domain maps — this keeps the heavy reading out of the main conversation:
 
-```
-Agent(subagent_type: "togeari-producer:tomo-map")
-Prompt: "Find creative directions for: [1-2 sentence summary of the user's creative intent]"
-```
+1. Read `agents/gallery-retrieval.md`. Its body (below the frontmatter) is the subagent's role preamble.
+2. Dispatch a general subagent whose prompt is the preamble followed by:
+
+> Playbook: read `references/tomo-map.md` and follow it.
+> Task: find creative directions for this intent.
+> Context: [the full Step 1 picture — theme, style hints, purpose, text needs, batch intent, entity notes. Do not compress this into a one-liner; retrieval quality depends on it.]
 
 **When tomo-map returns:**
 
@@ -308,33 +289,26 @@ Extend the brief with batch-specific fields:
 >
 > 确认这样生成，还是要调整什么？
 
-When the user confirms, retrieve specific reference prompts using tomo-scan:
+When the user confirms, retrieve specific reference prompts.
 
-```
-Skill("tomo-scan")
-```
+**Default (inline):** when the target category is small (character: 22, illustration: 12, infographic: 22, ad-creative: 34, ecommerce: 35 entries), read `references/tomo-scan.md` and follow it directly.
 
-Or escalate to subagent if the target category is large (poster: 232 entries, portrait: 196 entries):
+**Escalate to a subagent** when the target category is large (poster: 237, portrait: 196, ui: 100, comparison: 60 entries) or the direction spans multiple categories:
 
-```
-Agent(subagent_type: "togeari-producer:tomo-scan")
-Prompt: "Find reference prompts for: direction=[selected direction], brief=[confirmed brief summary]"
-```
+1. Read `agents/gallery-retrieval.md`. Its body is the subagent's role preamble.
+2. Dispatch a general subagent whose prompt is the preamble followed by:
 
-Then load the rupa-craft skill to compose the final prompt, passing both the brief and the reference prompts from tomo-scan:
+> Playbook: read `references/tomo-scan.md` and follow it.
+> Task: retrieve reference prompts for the confirmed direction.
+> Direction: [selected direction, in full]
+> Brief: [the confirmed brief — all fields, including batch fields if present]
+> Target category: [category name(s)]
 
-```
-Skill("rupa-craft")
-```
+Then read `references/rupa-craft.md` and follow it to compose the final prompt, with: the confirmed brief, tomo-scan's reference prompts and techniques, and reference image metadata if present (`ref_mode`, `ref_path`, `preserve_list`, `change_list`, `visual_analysis`).
 
-Follow rupa-craft's process with the confirmed brief and gallery techniques/reference prompts. For complex briefs (multiple elements, text layout, reference image constraints), escalate to a subagent:
+Prompt composition always runs inline. The more complex the brief, the more it depends on the full conversation context — user corrections, entity discussion, nuance that never made it into the brief fields. Dispatching it to a subagent would cut exactly that context away.
 
-```
-Agent(subagent_type: "togeari-producer:rupa-craft")
-Prompt: "Brief: [the confirmed brief]. Reference prompts: [3-5 prompts from tomo-scan]. Gallery techniques: [techniques from tomo-scan]"
-```
-
-The rupa-craft returns the final prompt text.
+Rupa returns the final prompt text.
 
 ### Step 7: Final Generation
 
@@ -352,7 +326,7 @@ The generation path is determined by `user_mode_choice` from Step 0, not by per-
 
 **Single image:** Use the prompt from rupa-craft to generate via the built-in image generation tool.
 
-**Batch mode:** rupa-craft returns N prompts. Generate all N images by dispatching N parallel subagents, each calling image_gen with one prompt. Collect all N results before proceeding to Step 8.
+**Batch mode:** rupa-craft returns N prompts. Read `agents/batch-worker.md`; dispatch N parallel general subagents, each with the worker preamble plus one prompt (verbatim), the generation path (built-in), and that image's params. Collect all N results before proceeding to Step 8.
 
 **API path:**
 
@@ -385,18 +359,19 @@ EOF
 
 ### Step 8: Review [Subaru]
 
-Load the subaru-judge skill to review the output:
+Review the output against the brief.
 
-```
-Skill("subaru-judge")
-```
+**Default (inline):** when the brief has few elements, read `references/subaru-judge.md` and follow it with the generated image and the brief.
 
-Follow subaru-judge's process with the generated image and the brief. For detailed briefs with many elements, escalate to a subagent:
+**Escalate to a subagent** for detailed briefs (many elements, text accuracy checks) or batch sets — the independent context also keeps the review free of this conversation's accumulated bias:
 
-```
-Agent(subagent_type: "togeari-producer:subaru-judge")
-Prompt: "Brief: [the confirmed brief]. Image: [the generated image(s) — pass all N images in batch mode]"
-```
+1. Read `agents/subaru-judge.md`. Its body is the subagent's role preamble.
+2. Dispatch a general subagent whose prompt is the preamble followed by:
+
+> Playbook: read `references/subaru-judge.md` and follow it.
+> Brief: [the full confirmed brief — every field]
+> Image(s): [file path(s) — all N in batch mode]
+> Generation info: [size / quality / provider, if API path was used]
 
 Present the image, the review, and two natural next-step suggestions:
 
@@ -446,6 +421,6 @@ At any point where the user expresses dissatisfaction or wants to change directi
 - Never invent reference images or claim to have found gallery matches that don't exist.
 - Never downgrade the user's creative intent. If they ask for a specific character/brand/IP, attempt it faithfully — don't silently switch to "inspired by" or "similar vibe" to play it safe. Encourage more input to improve accuracy, but always respect what the user asked for.
 - Never add creative elements the user didn't ask for. The user owns the creative vision — your job is to realize it precisely, not to "improve" it with unsolicited additions.
-- Use tomo-map and tomo-scan for gallery retrieval, not direct file reads. tomo-map reads curated domain creativity maps for direction discovery; tomo-scan searches the 718-entry index for specific reference prompts. Reading raw gallery files bypasses their semantic matching, is slower, and risks blowing up your context window.
-- Use rupa-craft for final prompt composition. rupa-craft applies a 9-layer prompt structure and domain-specific writing patterns (ad briefs, photography parameters, product descriptions) that produce consistently better results than freehand prompting. Preview prompts in Step 5 are the exception — compose those directly for speed.
-- Always run subaru-judge after final generation. The review catches element omissions, text rendering errors, and brief deviations that are easy to miss at a glance. Skipping it means the user loses a concrete optimization suggestion and a gallery-informed creative spark.
+- Use the Tomo playbooks for gallery retrieval, never direct raw-file reads. `references/tomo-map.md` reads curated domain creativity maps for direction discovery; `references/tomo-scan.md` searches the 718-entry index for specific reference prompts. Reading raw gallery files bypasses their semantic matching, is slower, and risks blowing up your context window.
+- Use the Rupa playbook (`references/rupa-craft.md`) for final prompt composition. It applies a 9-layer prompt structure and domain-specific writing patterns (ad briefs, photography parameters, product descriptions) that produce consistently better results than freehand prompting. Preview prompts in Step 5 are the exception — compose those directly for speed.
+- Always run the Subaru review (`references/subaru-judge.md`) after final generation. The review catches element omissions, text rendering errors, and brief deviations that are easy to miss at a glance. Skipping it means the user loses a concrete optimization suggestion and a gallery-informed creative spark.

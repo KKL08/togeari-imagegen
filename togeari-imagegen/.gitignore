@@ -25,5 +25,8 @@ docs/superpowers/
 .env
 *.env
 
+# Local agent config (not for GitHub)
+CLAUDE.md
+
 # Clone artifacts
 tmp/

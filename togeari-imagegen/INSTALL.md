@@ -13,7 +13,7 @@
 ```bash
 git clone https://github.com/KKL08/AIGC.git /tmp/aigc
 mkdir -p ~/.codex/skills/togeari-imagegen
-cp -r /tmp/aigc/togeari-imagegen/{SKILL.md,skills,references,gallery} \
+cp -r /tmp/aigc/togeari-imagegen/{SKILL.md,agents,references,gallery} \
       ~/.codex/skills/togeari-imagegen/
 rm -rf /tmp/aigc
 ```
@@ -48,13 +48,17 @@ Skill 会自动引导你从灵感到最终出图 — 意图理解、方向收敛
 ```
 togeari-imagegen/
 ├── SKILL.md                           ← 主入口（togeari-producer）
-├── skills/                            ← 子 skills
-│   ├── tomo-map/SKILL.md              ← Gallery 方向发现 [Tomo]
-│   ├── tomo-scan/SKILL.md             ← Gallery Prompt 检索 [Tomo]
-│   ├── rupa-craft/SKILL.md            ← Prompt 组装 [Rupa]
-│   └── subaru-judge/SKILL.md          ← 图片 Review [Subaru]
-├── references/
-│   └── openai-image-guide.md          ← gpt-image-2 参考指南
+├── references/                        ← 角色 playbook + 能力参考
+│   ├── momoka-route.md                ← 创意方向生成 [Momoka]
+│   ├── tomo-map.md                    ← Gallery 方向发现 [Tomo]
+│   ├── tomo-scan.md                   ← Gallery Prompt 检索 [Tomo]
+│   ├── rupa-craft.md                  ← Prompt 组装 [Rupa]
+│   ├── subaru-judge.md                ← 图片 Review [Subaru]
+│   └── openai-image-guide.md          ← gpt-image-2 能力参考
+├── agents/                            ← 薄 subagent 定义
+│   ├── gallery-retrieval.md           ← Gallery 检索 worker（只读）
+│   ├── subaru-judge.md                ← 独立 Review worker
+│   └── batch-worker.md               ← 批量生成 worker
 └── gallery/
     ├── index/                         ← 按领域拆分的索引（9 个文件）
     ├── domains/*.md                   ← 9 个领域指南（Creativity Maps）

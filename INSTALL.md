@@ -6,16 +6,16 @@
 
 在 Codex 对话中说：
 
-> 帮我安装 GitHub 上的 skill：github.com/KKL08/AIGC/togeari-imagegen
+> 帮我安装 GitHub 上的 skill：github.com/KKL08/togeari-imagegen
 
 或者手动克隆到 Codex 的 skill 目录：
 
 ```bash
-git clone https://github.com/KKL08/AIGC.git /tmp/aigc
+git clone https://github.com/KKL08/togeari-imagegen.git /tmp/togeari
 mkdir -p ~/.codex/skills/togeari-imagegen
-cp -r /tmp/aigc/togeari-imagegen/{SKILL.md,agents,references,gallery} \
+cp -r /tmp/togeari/{SKILL.md,agents,references,gallery} \
       ~/.codex/skills/togeari-imagegen/
-rm -rf /tmp/aigc
+rm -rf /tmp/togeari
 ```
 
 > `docs/`、`README.md`、`INSTALL.md` 是 GitHub 展示用的，Skill 运行不需要，不用安装。
@@ -29,8 +29,8 @@ Gallery 数据（718 条验证 prompt + 9 个领域指南 + 索引）已包含�
 ### Claude Code / CoWork
 
 ```bash
-git clone https://github.com/KKL08/AIGC.git /tmp/aigc
-ln -s /tmp/aigc/togeari-imagegen ~/.claude/skills/togeari-imagegen
+git clone https://github.com/KKL08/togeari-imagegen.git /tmp/togeari
+ln -s /tmp/togeari ~/.claude/skills/togeari-imagegen
 ```
 
 需要配置 `OPENAI_API_KEY` 环境变量以启用生图。首次使用时 Skill 会引导完成配置。
@@ -46,7 +46,6 @@ Skill 会自动引导你从灵感到最终出图 — 意图理解、方向收敛
 ## 目录结构
 
 ```
-togeari-imagegen/
 ├── SKILL.md                           ← 主入口（togeari-producer）
 ├── references/                        ← 角色 playbook + 能力参考
 │   ├── momoka-route.md                ← 创意方向生成 [Momoka]
